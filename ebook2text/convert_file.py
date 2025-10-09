@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Union
 
 from ebook2text.docx_conversion import DocxConverter, initialize_docx_converter
 from ebook2text.epub_conversion import EpubConverter, initialize_epub_converter
@@ -9,7 +8,7 @@ from ebook2text.text_parser import TextParser
 
 def _initialize_converter(
     file_path: Path, metadata: dict, extension: str
-) -> Union[DocxConverter, EpubConverter, PDFConverter, TextParser]:
+) -> DocxConverter | EpubConverter | PDFConverter | TextParser:
     """
     Initialize the appropriate converter based on the file extension.
 
@@ -51,8 +50,8 @@ def convert_file(
     metadata: dict,
     *,
     save_file: bool = True,
-    save_path: Union[Path, None] = None,
-) -> Union[str, None]:
+    save_path: Path | None = None,
+) -> str | None:
     """
     Converts a book to a text file with 3 asterisks for chapter breaks
     Args:
@@ -77,4 +76,4 @@ def convert_file(
     for content in converter.parse_file():
         if content:
             converter.write_text(content, save_path)
-    return
+    return None

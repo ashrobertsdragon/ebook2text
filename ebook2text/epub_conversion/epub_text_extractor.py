@@ -1,5 +1,3 @@
-from typing import Optional
-
 from ebook2text._types import EpubBook, Tag
 from ebook2text.ocr import encode_image_bytes, run_ocr
 
@@ -9,9 +7,7 @@ class EpubTextExtractor:
     Extracts text from EPUB elements, handling image OCR.
     """
 
-    def extract_text(
-        self, element: Tag, book: Optional[EpubBook] = None
-    ) -> str:
+    def extract_text(self, element: Tag, book: EpubBook | None = None) -> str:
         """
         Extracts text from an element, using OCR for images.
 

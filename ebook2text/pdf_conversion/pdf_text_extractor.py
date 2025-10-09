@@ -1,5 +1,3 @@
-from typing import List, Tuple, Union
-
 from pdfminer.pdfdocument import PDFSyntaxError
 
 from ebook2text import logger
@@ -24,7 +22,7 @@ class PDFTextExtractor:
         self._image_obj_nums: list[int] = []
         self._pdf_text_list: list[str] = []
 
-    def _match_objects(self, obj_type: str, obj_data: Union[int, str]) -> None:
+    def _match_objects(self, obj_type: str, obj_data: int | str) -> None:
         """
         Matches objects to their respective types.
 
@@ -46,16 +44,17 @@ class PDFTextExtractor:
         """
         Extracts text and image data from a PDF page.
 
-        This function receives an LTPage object extracted by PDFMiner and returns
-        a tuple containing a list of image object numbers and a list of strings
-        containing the text from the page.
+        This function receives an LTPage object extracted by PDFMiner and
+        returns a tuple containing a list of image object numbers and a list
+        of strings containing the text from the page.
 
         Args:pdf
             page (LTPage): The page to extract text and image data from.
 
         Returns:
-            tuple[list[int], list[str]]: A tuple containing a list of image object
-                numbers and a list of strings containing the text from the page.
+            tuple[list[int], list[str]]: A tuple containing a list of image
+                object numbers and a list of strings containing the text from
+                the page.
         """
 
         for element in page:
@@ -63,7 +62,7 @@ class PDFTextExtractor:
             self._match_objects(obj_type, obj_data)
         return self._image_obj_nums, self._pdf_text_list
 
-    def extract_text(self, page: LTPage) -> List[str]:
+    def extract_text(self, page: LTPage) -> list[str]:
         """
         Extracts text from a PDF page, including OCR text from images.
 
@@ -82,8 +81,8 @@ class PDFTextExtractor:
             page (LTPage): The PDF page represented as an LTPage object.
 
         Returns:
-            List[str]: The extracted text content from the PDF page, including OCR
-                text from images.
+            List[str]: The extracted text content from the PDF page, including
+                OCR text from images.
         """
         image_obj_nums, pdf_text_list = self._extract_element_data(page)
         self._image_obj_nums = []
@@ -99,7 +98,7 @@ class PDFTextExtractor:
             raise PDFConversionError from e
         return [ocr_text] + pdf_text_list
 
-    def _process_element(self, element: LTItem) -> Tuple[str, Union[int, str]]:
+    def _process_element(self, element: LTItem) -> tuple[str, int | str]:
         """
         Processes a PDF layout element to identify its type and extract
         relevant data.
@@ -128,17 +127,16 @@ class PDFTextExtractor:
                 return self._process_element(child)
         return "other", ""
 
-    def _extract_image_text(self, image_obj_nums: List[int]) -> str:
+    def _extract_image_text(self, image_obj_nums: list[int]) -> str:
         """
-        Collect list of Base64 encoded images and process with LLM to extract text.
-
+        Collect list of Base64 encoded images and extract text with LLM.
         Args:
             image_obj_nums (List[int]): List of image object numbers.
 
         Returns:
             str: Extracted text from images.
         """
-        base64_images: List[str] = self.image_extractor.extract_images(
+        base64_images: list[str] = self.image_extractor.extract_images(
             image_obj_nums
         )
         return run_ocr(base64_images)

@@ -1,5 +1,5 @@
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 from ebook2text.docx_conversion.docx_converter import DocxConverter
 from ebook2text.docx_conversion.docx_image_extractor import DocxImageExtractor

@@ -48,9 +48,15 @@ NOT_CHAPTER = {
 def roman_to_int(roman_num: str) -> int:
     """
     Convert a Roman numeral to an integer.
+
     Arguments:
         roman_num (str): A string representing the Roman numeral.
-    Returns int: The integer value of the Roman numeral.
+
+    Returns:
+        int: The integer value of the Roman numeral.
+
+    Raises:
+        ValueError if string is not a Roman numeral.
     """
     if not isinstance(roman_num, str):
         raise TypeError("Input must be a string")
@@ -61,7 +67,7 @@ def roman_to_int(roman_num: str) -> int:
         if roman.count(numeral) > 1:
             raise ValueError("Not roman numeral")
 
-    ROMAN_NUMERALS = {
+    roman_numerals = {
         "I": 1,
         "V": 5,
         "X": 10,
@@ -77,7 +83,7 @@ def roman_to_int(roman_num: str) -> int:
     previous_char: str = ""
 
     for char in reversed(roman):
-        if char not in ROMAN_NUMERALS:
+        if char not in roman_numerals:
             raise ValueError("Not roman numeral")
 
         consecutive_count = (
@@ -86,7 +92,7 @@ def roman_to_int(roman_num: str) -> int:
         if consecutive_count > 3:
             raise ValueError("Not roman numeral")
 
-        value = ROMAN_NUMERALS[char]
+        value = roman_numerals[char]
         if value >= prev_value:
             total += value
         else:

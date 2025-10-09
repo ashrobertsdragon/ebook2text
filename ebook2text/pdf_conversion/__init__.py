@@ -1,5 +1,5 @@
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 from ebook2text.pdf_conversion.pdf_converter import PDFConverter
 from ebook2text.pdf_conversion.pdf_image_extractor import PDFImageExtractor

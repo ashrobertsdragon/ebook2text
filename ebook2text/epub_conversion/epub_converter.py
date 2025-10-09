@@ -1,5 +1,5 @@
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 import ebooklib
 from bs4 import BeautifulSoup
@@ -82,9 +82,9 @@ class EpubConverter:
         Returns:
             str: String containing the text of the chapter.
         """
-        TEXT_ELEMENTS = ["p", "img", "h1", "h2", "h3", "h4", "h5", "h6"]
+        text_elements = ["p", "img", "h1", "h2", "h3", "h4", "h5", "h6"]
         soup = BeautifulSoup(item.content, "html.parser")
-        elements: ResultSet[Tag] = soup.find_all(TEXT_ELEMENTS)
+        elements: ResultSet[Tag] = soup.find_all(text_elements)
 
         for i, element in enumerate(elements[: self.max_lines_to_check]):
             text = self.text_extractor.extract_text(element, self.epub_book)

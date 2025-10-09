@@ -1,6 +1,6 @@
 import re
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator, List
 
 from pdfminer.high_level import extract_pages
 from pdfminer.pdfparser import PDFSyntaxError
@@ -40,7 +40,7 @@ class PDFConverter:
         self._max_lines_to_check = 6
         self._chapter_separator = "***\n"
 
-        self._page: List[str] = []
+        self._page: list[str] = []
 
     def _read_file(self, file_path: Path) -> Generator[LTPage, None, None]:
         """
@@ -64,8 +64,7 @@ class PDFConverter:
 
     def _is_title_page(self, page_lines: list[str]) -> bool:
         """
-        Determines if the page is a title page by comparing the number of lines in
-        the page to a threshold.
+        Determines if title page by comparing page length to threshold.
         """
         return len(page_lines) < self._max_lines_to_check
 

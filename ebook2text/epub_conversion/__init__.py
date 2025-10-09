@@ -1,5 +1,5 @@
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 from ebook2text.epub_conversion.epub_converter import EpubConverter
 from ebook2text.epub_conversion.epub_text_extractor import EpubTextExtractor

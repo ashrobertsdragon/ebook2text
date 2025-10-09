@@ -1,5 +1,5 @@
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator, Tuple
 
 import docx
 from docx.oxml.exceptions import XmlchemyError
@@ -211,7 +211,7 @@ class DocxConverter:
 
     def _process_text(
         self, paragraph_text: str, current_para_index: int
-    ) -> Tuple[str, int]:
+    ) -> tuple[str, int]:
         """
         Process a paragraph's text to determine if it starts a new chapter and
         format it accordingly.

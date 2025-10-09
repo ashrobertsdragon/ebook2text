@@ -1,5 +1,3 @@
-from typing import List
-
 from ebook2text import logger
 from ebook2text._types import Paragraph
 from ebook2text.docx_conversion._namespaces import docx_ns_map
@@ -11,7 +9,7 @@ class DocxImageExtractor:
     A class dedicated to extracting images from docx Paragraph objects.
     """
 
-    def extract_images(self, paragraph: Paragraph) -> List[str]:
+    def extract_images(self, paragraph: Paragraph) -> list[str]:
         """
         Extracts and converts images found in the paragraph into
         base64-encoded strings.
@@ -48,8 +46,8 @@ class DocxImageExtractor:
         blips = paragraph._p.findall(".//a:blip", namespaces=namespace)
         for blip in blips:
             try:
-                rId = blip.attrib[f"{{{namespace['r']}}}embed"]
-                image_part = paragraph.part.related_parts[rId]
+                r_id = blip.attrib[f"{{{namespace['r']}}}embed"]
+                image_part = paragraph.part.related_parts[r_id]
                 blob = image_part.blob
                 image_blobs.append(blob)
             except (KeyError, ValueError, AttributeError) as e:

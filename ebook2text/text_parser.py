@@ -1,5 +1,5 @@
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 from ebook2text._exceptions import TextConversionError
 from ebook2text._logger import logger

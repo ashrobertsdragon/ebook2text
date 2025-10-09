@@ -91,21 +91,21 @@ class TestPDFConverter:
     def test_parse_file_text_extraction(self, pdf_converter):
         """Test that parse_file extracts only the main content and excludes unwanted sections."""
         parsed_text = "".join(pdf_converter.parse_file())
-        assert (
-            "Sample Title" not in parsed_text
-        ), "Title text should be removed from output"
-        assert (
-            "Introduction" not in parsed_text
-        ), "Introduction section should be removed from output"
-        assert (
-            "Chapter 1" not in parsed_text
-        ), "Chapter 1 header should be removed from output"
-        assert (
-            "Chapter 2" not in parsed_text
-        ), "Chapter 2 header should be removed from output"
-        assert (
-            "First chapter paragraph text." in parsed_text
-        ), "Text after Chapter 1 should be included"
+        assert "Sample Title" not in parsed_text, (
+            "Title text should be removed from output"
+        )
+        assert "Introduction" not in parsed_text, (
+            "Introduction section should be removed from output"
+        )
+        assert "Chapter 1" not in parsed_text, (
+            "Chapter 1 header should be removed from output"
+        )
+        assert "Chapter 2" not in parsed_text, (
+            "Chapter 2 header should be removed from output"
+        )
+        assert "First chapter paragraph text." in parsed_text, (
+            "Text after Chapter 1 should be included"
+        )
         assert (
             "Lorem ipsum odor amet, consectetuer adipiscing elit."
             in parsed_text
@@ -113,9 +113,9 @@ class TestPDFConverter:
 
     def test_chapter_separator_insertion(self, pdf_converter):
         parsed_text = "".join(pdf_converter.parse_file())
-        assert (
-            pdf_converter._chapter_separator in parsed_text
-        ), "Chapter separator should be inserted between chapters"
+        assert pdf_converter._chapter_separator in parsed_text, (
+            "Chapter separator should be inserted between chapters"
+        )
 
     def test_page_combining(self, pdf_converter):
         page_lines = [
@@ -135,29 +135,29 @@ class TestPDFConverter:
         cleaned_text = pdf_converter.remove_extra_whitespace(
             text_with_whitespace
         )
-        assert (
-            cleaned_text == "Line 1\nLine 2 Line 3"
-        ), "Extra whitespace should be removed"
+        assert cleaned_text == "Line 1\nLine 2 Line 3", (
+            "Extra whitespace should be removed"
+        )
 
     def test_image_processing(self, pdf_converter_with_images):
         """Test parsing with an image-based PDF containing 'Chapter 1' as an image."""
         parsed_text = "".join(pdf_converter_with_images.parse_file())
 
-        assert (
-            "Sample Title" not in parsed_text
-        ), "Title text should be removed from output"
-        assert (
-            "Introduction" not in parsed_text
-        ), "Introduction section should be removed from output"
-        assert (
-            "Chapter 1" not in parsed_text
-        ), "Chapter 1 header should be removed from output"
-        assert (
-            "Chapter 2" not in parsed_text
-        ), "Chapter 2 header should be removed from output"
-        assert (
-            "First chapter paragraph text." in parsed_text
-        ), "Text after Chapter 1 should be included"
+        assert "Sample Title" not in parsed_text, (
+            "Title text should be removed from output"
+        )
+        assert "Introduction" not in parsed_text, (
+            "Introduction section should be removed from output"
+        )
+        assert "Chapter 1" not in parsed_text, (
+            "Chapter 1 header should be removed from output"
+        )
+        assert "Chapter 2" not in parsed_text, (
+            "Chapter 2 header should be removed from output"
+        )
+        assert "First chapter paragraph text." in parsed_text, (
+            "Text after Chapter 1 should be included"
+        )
         assert (
             "Lorem ipsum odor amet, consectetuer adipiscing elit."
             in parsed_text

@@ -2,7 +2,6 @@ import base64
 import itertools
 from io import BytesIO
 from pathlib import Path
-from typing import List, Tuple
 
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfinterp import resolve1
@@ -83,7 +82,7 @@ class PDFImageExtractor:
     def __init__(self, file_path: Path) -> None:
         self.file_path = file_path
 
-    def extract_images(self, obj_nums: List[int]) -> List[str]:
+    def extract_images(self, obj_nums: list[int]) -> list[str]:
         """
         Processes and extracts images from PDF objects based on the provided
         object numbers.
@@ -187,14 +186,16 @@ class PDFImageExtractor:
         """
         if attempt > 1:
             logger.warning(
-                f"Unable to extract image from object: {obj_num} or {obj_num - 1}"
+                f"Unable to extract image from object: {obj_num} "
+                f"or {obj_num - 1}"
             )
             return ""
         try:
             obj = resolve1(self.document.getobj(obj_num))
             if not isinstance(obj, PDFStream):
                 raise TypeError(
-                    f"Invalid object. Received {type(obj)} instead of PDFStream"
+                    "Invalid object. "
+                    f"Received {type(obj)} instead of PDFStream"
                 )
             if _convert_psliteral_to_str(obj.get("Filter")) == "DCTDecode":
                 return self._transcode_to_png(obj.get_data())
@@ -216,7 +217,7 @@ class PDFImageExtractor:
             logger.exception(f"Exception: {e}")
             return ""
 
-    def _find_next_image(self, obj_num: int, attempt: int) -> Tuple[int, int]:
+    def _find_next_image(self, obj_num: int, attempt: int) -> tuple[int, int]:
         """
         Finds the next image object in the PDF document.
 
@@ -238,7 +239,7 @@ class PDFImageExtractor:
 
     def _parse_image_data(
         self, stream: PDFStream
-    ) -> Tuple[int, int, str, bytes]:
+    ) -> tuple[int, int, str, bytes]:
         """
         Parses image data from a PDF object.
 
@@ -261,7 +262,7 @@ class PDFImageExtractor:
         stream = _expand_bits(stream.get_data(), bit_depth)
         return width, height, mode, stream
 
-    def _extract_color_data(self, stream: PDFStream) -> Tuple[str, int]:
+    def _extract_color_data(self, stream: PDFStream) -> tuple[str, int]:
         """
         Extracts color data from a PDF object.
 
