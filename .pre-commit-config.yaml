@@ -34,18 +34,11 @@ repos:
         # Trims trailing whitespace.
         exclude: ".*(data.*|extern.*|licenses.*|_parsetab.py|test_cds.py)$"
 
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: ["--profile", "black", "--filter-files"]
-        additional_dependencies: [toml]
-
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.4
+    rev: v0.14.0
     hooks:
-      - id: ruff
+      - id: ruff-check
+        target-version: "py310"
         exclude: ^ebook2text/ebooklib/
         args: [ --fix ]
       - id: ruff-format
