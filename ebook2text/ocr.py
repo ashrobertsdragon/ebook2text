@@ -9,7 +9,9 @@ from . import logger
 from ._exceptions import NoResponseError
 
 load_dotenv()
-api_key: str = os.getenv("OPENAI_API_KEY", "")
+api_key: str = os.environ["OPENAI_API_KEY"]
+MODEL: str = os.environ["OPENAI_MODEL"]
+
 CLIENT: OpenAI = OpenAI(api_key=api_key)
 
 GPT_REFUSALS = [
@@ -96,7 +98,7 @@ def run_ocr(
 
     try:
         response: ChatCompletion = client.chat.completions.create(
-            model="gpt-4o-mini", messages=payload, max_tokens=10
+            model=MODEL, messages=payload, max_tokens=10
         )
         if response.choices and response.choices[0].message.content:
             answer: str = response.choices[0].message.content
