@@ -69,3 +69,8 @@
 
 - **v2.1.2** (Release date January 8, 2025)
   - uv adds custom sources to uv-specific section by default where it is not seen by build systems. Ebooklib custom source now directly in dependencies section.
+
+- **v2.2.0** (Release date October 9, 2025)
+  - Move LLM model name into environment configuration to allow updating or user configuration.
+  - Upgrade tools and run updated configurations on file.
+  - Fix typo in changelog filename.
