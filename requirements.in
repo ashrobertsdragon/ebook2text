@@ -1,7 +1,0 @@
-pdfminer.six
-pillow
-beautifulsoup4
-python-docx
-python-dotenv
-openai
-ebooklib-autoupdate
