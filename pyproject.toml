@@ -21,10 +21,10 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Text Processing"
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "beautifulsoup4>=4.12.3",
-    "ebooklib-autoupdate>=0.18.1",
+    "ebooklib-autoupdate>=0.18.3",
     "openai>=1.54.3",
     "pdfminer-six>=20240706",
     "pillow>=10.4.0",
@@ -42,15 +42,27 @@ build-backend = "setuptools.build_meta"
 
 [tool.ruff]
 line-length = 79
-force-exclude = true
+target-version = "py310"
 exclude = [".git", "__pycache__", ".venv", "dist", "build", ".vscode", ".egg-info"]
 
-[tool.isort]
-line_length = 79
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/{tests,docs,tools}/*" = ["F401", "I001", "E501", "N806"]
+"**/VERSION.py" = ["N999"]
+
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+line-ending = "lf"
 
 [tool.mypy]
-disable_error_code = "import-untyped"
-exclude = "ebooklib"
+mypy_path = "$MYPY_CONFIG_FILE_DIR/ebook2text"
+exclude_gitignore = true
+ignore_missing_imports = true
+follow_imports = "silent"
+follow_untyped_imports = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
