@@ -24,7 +24,7 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "beautifulsoup4>=4.12.3",
-    "ebooklib-autoupdate>=0.18.3",
+    "ebooklib>=0.20",
     "openai>=1.54.3",
     "pdfminer-six>=20240706",
     "pillow>=10.4.0",
@@ -34,7 +34,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Repository = "https://github.com/ashrobertsdragon/Ebook-conversion-to-Text-for-Machine-Learning"
+Repository = "https://github.com/ashrobertsdragon/ebook2text"
 
 [build-system]
 requires = ["setuptools>=61"]
