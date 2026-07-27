@@ -2,8 +2,8 @@
 name = "ebook2text"
 description = "Convert common book file types to text for machine learning"
 readme = "README.md"
+requires-python = ">=3.10"
 authors = [{ name = "Ashlynn Antrobus", email = "ashlynn@prosepal.io" }]
-license = { text = "MIT" }
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Environment :: Console",
@@ -16,16 +16,16 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
   "Topic :: Text Processing"
 ]
-requires-python = ">=3.10"
 dependencies = [
   "beautifulsoup4>=4.12.3",
   "ebooklib>=0.20",
   "openai>=1.54.3",
   "pdfminer-six>=20240706",
-  "pillow>=10.4.0",
+  "pillow>=12.3.0",
   "python-docx>=1.1.2",
   "python-dotenv>=1.0.1",
 ]
