@@ -3,6 +3,28 @@ from pathlib import Path
 import pytest
 
 
+class FakeOCRProvider:
+    """Test double satisfying the OCRProvider protocol."""
+
+    def __init__(self, response: str = "Chapter One"):
+        self.response = response
+        self.calls: list[list[str]] = []
+
+    def perform_ocr(self, base64_images: list[str]) -> str:
+        self.calls.append(base64_images)
+        return self.response
+
+
+@pytest.fixture
+def fake_ocr_provider():
+    return FakeOCRProvider()
+
+
+@pytest.fixture
+def fake_ocr_provider_class():
+    return FakeOCRProvider
+
+
 @pytest.fixture(scope="session")
 def test_files_dir():
     return Path(__file__).parent / "test_files"

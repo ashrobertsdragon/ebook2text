@@ -39,9 +39,12 @@ def fake_image_extractor(test_pdf_with_images_path):
 
 
 @pytest.fixture
-def pdf_text_extractor(fake_image_extractor):
+def pdf_text_extractor(fake_image_extractor, fake_ocr_provider):
     """Fixture for initializing a PDFTextExtractor instance."""
-    return PDFTextExtractor(image_extractor=fake_image_extractor)
+    return PDFTextExtractor(
+        image_extractor=fake_image_extractor,
+        ocr_provider=fake_ocr_provider,
+    )
 
 
 @pytest.fixture
@@ -254,18 +257,9 @@ class TestPDFTextExtractor:
         assert text_result == expected_result
 
     def test_extract_text_with_images(
-        self, test_pdf_with_images_path, pdf_text_extractor, monkeypatch
+        self, test_pdf_with_images_path, pdf_text_extractor
     ):
         """Test extract_text method for pages with images."""
-
-        def mock_run_ocr(images):
-            return "Chapter One"
-
-        monkeypatch.setattr(
-            "ebook2text.pdf_conversion.pdf_text_extractor.run_ocr",
-            mock_run_ocr,
-        )
-
         pages = list(extract_pages(test_pdf_with_images_path, maxpages=5))
         page_with_image = pages[4]
         expected_result = [

@@ -46,3 +46,27 @@ class DocxConversionError(EbookConversionError):
 
 class TextConversionError(EbookConversionError):
     pass
+
+
+class OCRProviderError(EbookConversionError):
+    """Base class for errors raised by AI OCR providers."""
+
+    pass
+
+
+class UnsupportedProviderError(OCRProviderError):
+    """Raised when an unknown OCR provider name is requested."""
+
+    pass
+
+
+class MissingDependencyError(OCRProviderError):
+    """Raised when a provider's SDK is not installed."""
+
+    pass
+
+
+class MissingConfigurationError(OCRProviderError):
+    """Raised when required provider configuration is absent."""
+
+    pass

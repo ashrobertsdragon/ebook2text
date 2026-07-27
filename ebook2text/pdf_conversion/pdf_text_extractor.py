@@ -3,7 +3,7 @@ from pdfminer.pdfdocument import PDFSyntaxError
 from ebook2text import logger
 from ebook2text._exceptions import PDFConversionError
 from ebook2text._types import LTChar, LTContainer, LTItem, LTPage, LTText
-from ebook2text.ocr import run_ocr
+from ebook2text.ai_providers import OCRProvider, get_ocr_provider
 from ebook2text.pdf_conversion.pdf_image_extractor import PDFImageExtractor
 
 
@@ -17,10 +17,22 @@ class PDFTextExtractor:
             images.
     """
 
-    def __init__(self, image_extractor: PDFImageExtractor) -> None:
+    def __init__(
+        self,
+        image_extractor: PDFImageExtractor,
+        ocr_provider: OCRProvider | None = None,
+    ) -> None:
         self.image_extractor = image_extractor
+        self._ocr_provider = ocr_provider
         self._image_obj_nums: list[int] = []
         self._pdf_text_list: list[str] = []
+
+    @property
+    def ocr_provider(self) -> OCRProvider:
+        """Return the injected provider or build the default one."""
+        if self._ocr_provider is None:
+            self._ocr_provider = get_ocr_provider()
+        return self._ocr_provider
 
     def _match_objects(self, obj_type: str, obj_data: int | str) -> None:
         """
@@ -139,4 +151,4 @@ class PDFTextExtractor:
         base64_images: list[str] = self.image_extractor.extract_images(
             image_obj_nums
         )
-        return run_ocr(base64_images)
+        return self.ocr_provider.perform_ocr(base64_images)

@@ -1,6 +1,7 @@
 from collections.abc import Generator
 from pathlib import Path
 
+from ebook2text.ai_providers import OCRProvider
 from ebook2text.pdf_conversion.pdf_converter import PDFConverter
 from ebook2text.pdf_conversion.pdf_image_extractor import PDFImageExtractor
 from ebook2text.pdf_conversion.pdf_text_extractor import PDFTextExtractor
@@ -14,7 +15,11 @@ __all__ = [
 ]
 
 
-def initialize_pdf_converter(file_path: Path, metadata: dict) -> PDFConverter:
+def initialize_pdf_converter(
+    file_path: Path,
+    metadata: dict,
+    ocr_provider: OCRProvider | None = None,
+) -> PDFConverter:
     """
     Initializes a PDFConverter instance.
 
@@ -22,15 +27,23 @@ def initialize_pdf_converter(file_path: Path, metadata: dict) -> PDFConverter:
         file_path (Path): The path to the PDF file to be read.
         metadata (dict): A dictionary containing metadata such as title and
             author information.
+        ocr_provider (OCRProvider | None): Optional OCR provider; defaults
+            to the environment-configured provider.
     Returns:
         PDFConverter: A PDFConverter instance.
     """
     image_extractor = PDFImageExtractor(file_path)
-    text_extractor = PDFTextExtractor(image_extractor)
+    text_extractor = PDFTextExtractor(
+        image_extractor, ocr_provider=ocr_provider
+    )
     return PDFConverter(file_path, metadata, text_extractor)
 
 
-def convert_pdf(file_path: Path, metadata: dict) -> Generator[str, None, None]:
+def convert_pdf(
+    file_path: Path,
+    metadata: dict,
+    ocr_provider: OCRProvider | None = None,
+) -> Generator[str, None, None]:
     """
     A convenience function that reads a PDF file and splits its content into
     chapters based on chapter boundaries.
@@ -42,10 +55,14 @@ def convert_pdf(file_path: Path, metadata: dict) -> Generator[str, None, None]:
         file_path (str): The path to the PDF file to be read.
         metadata (dict): A dictionary containing metadata such as title and
             author information.
+        ocr_provider (OCRProvider | None): Optional OCR provider; defaults
+            to the environment-configured provider.
 
     Yields:
         str: The parsed text of each page in the PDF file.
     """
-    pdf_converter: PDFConverter = initialize_pdf_converter(file_path, metadata)
+    pdf_converter: PDFConverter = initialize_pdf_converter(
+        file_path, metadata, ocr_provider
+    )
 
     yield from pdf_converter.parse_file()

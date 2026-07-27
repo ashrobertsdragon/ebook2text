@@ -1,11 +1,25 @@
+from pathlib import PurePosixPath
+
 from ebook2text._types import EpubBook, Tag
-from ebook2text.ocr import encode_image_bytes, run_ocr
+from ebook2text.ai_providers import OCRProvider, get_ocr_provider
+from ebook2text.ocr import encode_image_bytes
 
 
 class EpubTextExtractor:
     """
     Extracts text from EPUB elements, handling image OCR.
     """
+
+    def __init__(self, ocr_provider: OCRProvider | None = None) -> None:
+        """Store an optional OCR provider; defaults lazily from env."""
+        self._ocr_provider = ocr_provider
+
+    @property
+    def ocr_provider(self) -> OCRProvider:
+        """Return the injected provider or build the default one."""
+        if self._ocr_provider is None:
+            self._ocr_provider = get_ocr_provider()
+        return self._ocr_provider
 
     def extract_text(self, element: Tag, book: EpubBook | None = None) -> str:
         """
@@ -36,7 +50,12 @@ class EpubTextExtractor:
         """
         if element.name != "img":
             raise ValueError("Element is not an image")
-        image = book.get_item_with_id(element.get("src"))
+        src = str(element.get("src"))
+        image = book.get_item_with_id(src) or book.get_item_with_id(
+            PurePosixPath(src).name
+        )
+        if image is None:
+            raise ValueError(f"Image item not found for src: {src}")
         return [encode_image_bytes(image.get_content())]
 
     def _extract_image_text(self, element: Tag, book: EpubBook) -> str:
@@ -51,7 +70,7 @@ class EpubTextExtractor:
             str: The extracted text from the image.
         """
         base64_images: list = self._get_image_file(element, book)
-        return run_ocr(base64_images)
+        return self.ocr_provider.perform_ocr(base64_images)
 
     def _extract_text(self, element: Tag) -> str:
         return element.get_text().strip()

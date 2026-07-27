@@ -56,15 +56,19 @@ def docx_image_extractor_with_image(
 
 
 @pytest.fixture
-def docx_text_extractor(docx_image_extractor):
-    return DocxTextExtractor(docx_image_extractor)
+def docx_text_extractor(docx_image_extractor, fake_ocr_provider):
+    return DocxTextExtractor(
+        docx_image_extractor, ocr_provider=fake_ocr_provider
+    )
 
 
 @pytest.fixture
 def docx_text_extractor_with_image(
-    docx_text_extractor, docx_paragraph_with_image
+    docx_text_extractor, docx_paragraph_with_image, fake_ocr_provider
 ):
-    return DocxTextExtractor(docx_paragraph_with_image)
+    return DocxTextExtractor(
+        docx_paragraph_with_image, ocr_provider=fake_ocr_provider
+    )
 
 
 @pytest.fixture

@@ -12,7 +12,6 @@ classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -35,8 +34,15 @@ dynamic = ["version"]
 [project.urls]
 Repository = "https://github.com/ashrobertsdragon/ebook2text"
 
+[project.optional-dependencies]
+all = ["ebook2text[gemini,anthropic]"]
+anthropic = ["anthropic>=0.40.0"]
+gemini = ["google-genai>=1.0.0"]
+
 [dependency-groups]
 dev = [
+  "anthropic>=0.40.0",
+  "google-genai>=1.0.0",
   "pytest>=8.3.3",
   "pytest-mock>=3.14.0",
 ]

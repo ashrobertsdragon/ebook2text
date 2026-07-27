@@ -29,8 +29,8 @@ def sample_element_with_image():
 
 
 @pytest.fixture
-def epub_text_extractor():
-    return EpubTextExtractor()
+def epub_text_extractor(fake_ocr_provider):
+    return EpubTextExtractor(ocr_provider=fake_ocr_provider)
 
 
 @pytest.fixture
@@ -96,12 +96,7 @@ class TestEpubTextExtractor:
         epub_converter_with_image,
         epub_text_extractor,
         sample_element_with_image,
-        mocker,
     ):
-        mocker.patch(
-            "ebook2text.epub_conversion.epub_text_extractor.run_ocr",
-            return_value="Chapter One",
-        )
         epub_book = epub_converter_with_image.epub_book
         element = sample_element_with_image
         print(element.get("src"))

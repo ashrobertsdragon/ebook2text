@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from ebook2text.ai_providers import OCRProvider
 from ebook2text.docx_conversion import DocxConverter, initialize_docx_converter
 from ebook2text.epub_conversion import EpubConverter, initialize_epub_converter
 from ebook2text.pdf_conversion import PDFConverter, initialize_pdf_converter
@@ -7,7 +8,10 @@ from ebook2text.text_parser import TextParser
 
 
 def _initialize_converter(
-    file_path: Path, metadata: dict, extension: str
+    file_path: Path,
+    metadata: dict,
+    extension: str,
+    ocr_provider: OCRProvider | None = None,
 ) -> DocxConverter | EpubConverter | PDFConverter | TextParser:
     """
     Initialize the appropriate converter based on the file extension.
@@ -25,11 +29,11 @@ def _initialize_converter(
         ValueError: If the file type is not supported.
     """
     if extension == ".epub":
-        return initialize_epub_converter(file_path, metadata)
+        return initialize_epub_converter(file_path, metadata, ocr_provider)
     elif extension == ".pdf":
-        return initialize_pdf_converter(file_path, metadata)
+        return initialize_pdf_converter(file_path, metadata, ocr_provider)
     elif extension == ".docx":
-        return initialize_docx_converter(file_path, metadata)
+        return initialize_docx_converter(file_path, metadata, ocr_provider)
     elif extension in {".txt", ".text"}:
         return TextParser(file_path)
     raise ValueError(f"Unsupported file type: {extension}")
@@ -51,6 +55,7 @@ def convert_file(
     *,
     save_file: bool = True,
     save_path: Path | None = None,
+    ocr_provider: OCRProvider | None = None,
 ) -> str | None:
     """
     Converts a book to a text file with 3 asterisks for chapter breaks
@@ -59,6 +64,8 @@ def convert_file(
         metadata: Dictionary with title and author name.
         save_file: Boolean to save the file or not.
         save_path: (Optional) Path to save the file to.
+        ocr_provider: (Optional) OCR provider for image text extraction;
+            defaults to the environment-configured provider.
 
     Returns:
         None if save_file is False, else returns the parsed text as a string.
@@ -68,7 +75,9 @@ def convert_file(
             _initialize_converter).
     """
     extension = file_path.suffix.lower()
-    converter = _initialize_converter(file_path, metadata, extension)
+    converter = _initialize_converter(
+        file_path, metadata, extension, ocr_provider
+    )
     if not save_file:
         return converter.return_string(converter.parse_file())
 

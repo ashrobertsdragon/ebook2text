@@ -1,6 +1,6 @@
 from ebook2text._types import Paragraph
+from ebook2text.ai_providers import OCRProvider, get_ocr_provider
 from ebook2text.docx_conversion.docx_image_extractor import DocxImageExtractor
-from ebook2text.ocr import run_ocr
 
 
 class DocxTextExtractor:
@@ -8,8 +8,20 @@ class DocxTextExtractor:
     Class dedicated to extracting and processing text from docx Paragraphs.
     """
 
-    def __init__(self, image_extractor: DocxImageExtractor):
+    def __init__(
+        self,
+        image_extractor: DocxImageExtractor,
+        ocr_provider: OCRProvider | None = None,
+    ):
         self.image_extractor = image_extractor
+        self._ocr_provider = ocr_provider
+
+    @property
+    def ocr_provider(self) -> OCRProvider:
+        """Return the injected provider or build the default one."""
+        if self._ocr_provider is None:
+            self._ocr_provider = get_ocr_provider()
+        return self._ocr_provider
 
     def extract_text(self, paragraph: Paragraph) -> str:
         """
@@ -31,5 +43,5 @@ class DocxTextExtractor:
         Extracts text from images within the paragraph using OCR.
         """
         if base64_images := self.image_extractor.extract_images(paragraph):
-            return run_ocr(base64_images)
+            return self.ocr_provider.perform_ocr(base64_images)
         return ""
