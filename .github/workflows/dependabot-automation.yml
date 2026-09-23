@@ -34,9 +34,9 @@ jobs:
         run: |
           ECOSYSTEM="${{ steps.metadata.outputs.package-ecosystem }}"
           git fetch origin main
-          if [ "$ECOSYSTEM" = "pip" ] || git diff --name-only origin/main...HEAD | grep -q "pyproject.toml"; then
+          if [ "$ECOSYSTEM" = "uv" ] || [ "$ECOSYSTEM" = "pip" ] || git diff --name-only origin/main...HEAD | grep -qE "pyproject\.toml|uv\.lock"; then
             echo "is_python_update=true" >> "$GITHUB_OUTPUT"
-            echo "Python dependency update detected."
+            echo "Python dependency update detected (ecosystem: $ECOSYSTEM)."
           else
             echo "is_python_update=false" >> "$GITHUB_OUTPUT"
             echo "Non-Python update detected (ecosystem: $ECOSYSTEM)."
