@@ -5,13 +5,27 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+      time: "06:00"
+      timezone: "America/Denver"
     open-pull-requests-limit: 10
+    rebase-strategy: "auto"
+    cooldown:
+      default-days: 3
     groups:
-      dependencies:
+      dependencies-minor-patch:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
+      dependencies-major:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
     commit-message:
       prefix: "chore(deps)"
+      include: "scope"
     labels:
       - "dependencies"
       - "uv"
@@ -21,13 +35,17 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+      time: "06:00"
+      timezone: "America/Denver"
     open-pull-requests-limit: 10
+    rebase-strategy: "auto"
     groups:
       github-actions:
         patterns:
           - "*"
     commit-message:
       prefix: "chore(deps)"
+      include: "scope"
     labels:
       - "dependencies"
       - "github-actions"

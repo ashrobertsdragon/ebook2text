@@ -29,34 +29,59 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Determine if Python dependencies changed
-        id: check_ecosystem
+      - name: Analyze update type and target ecosystem
+        id: check_update
         run: |
           ECOSYSTEM="${{ steps.metadata.outputs.package-ecosystem }}"
+          DEP_GROUP="${{ steps.metadata.outputs.dependency-group }}"
+          UPDATE_TYPE="${{ steps.metadata.outputs.update-type }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BRANCH="${{ github.head_ref }}"
+
+          echo "Ecosystem: $ECOSYSTEM"
+          echo "Dependency Group: $DEP_GROUP"
+          echo "Update Type: $UPDATE_TYPE"
+
           git fetch origin main
+
+          # Check if major version update
+          IS_MAJOR="false"
+          if [ "$DEP_GROUP" = "dependencies-major" ] || [ "$UPDATE_TYPE" = "version-update:semver-major" ] || echo "$PR_TITLE" | grep -qi "dependencies-major" || echo "$PR_BRANCH" | grep -qi "dependencies-major"; then
+            IS_MAJOR="true"
+          fi
+
+          # Check if python dependency update
+          IS_PYTHON="false"
           if [ "$ECOSYSTEM" = "uv" ] || [ "$ECOSYSTEM" = "pip" ] || git diff --name-only origin/main...HEAD | grep -qE "pyproject\.toml|uv\.lock"; then
-            echo "is_python_update=true" >> "$GITHUB_OUTPUT"
-            echo "Python dependency update detected (ecosystem: $ECOSYSTEM)."
+            IS_PYTHON="true"
+          fi
+
+          echo "is_major=$IS_MAJOR" >> "$GITHUB_OUTPUT"
+          echo "is_python=$IS_PYTHON" >> "$GITHUB_OUTPUT"
+
+          if [ "$IS_MAJOR" = "true" ]; then
+            echo "::notice::Major version update detected. Auto-merge and patch release will be skipped for manual review."
+          elif [ "$IS_PYTHON" = "true" ]; then
+            echo "Python minor/patch dependency update detected. Proceeding with lockfile refresh, patch bump, and auto-merge."
           else
-            echo "is_python_update=false" >> "$GITHUB_OUTPUT"
-            echo "Non-Python update detected (ecosystem: $ECOSYSTEM)."
+            echo "Non-Python update detected (ecosystem: $ECOSYSTEM). Proceeding with merge without package release."
           fi
 
       - name: Install uv
-        if: steps.check_ecosystem.outputs.is_python_update == 'true'
+        if: steps.check_update.outputs.is_python == 'true'
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
       - name: Refresh uv.lock
-        if: steps.check_ecosystem.outputs.is_python_update == 'true'
+        if: steps.check_update.outputs.is_python == 'true' && steps.check_update.outputs.is_major != 'true'
         run: |
-          echo "Updating uv lockfile..."
+          echo "Ensuring uv lockfile is in sync..."
           uv lock
 
       - name: Bump Bugfix / Patch Version in VERSION.py
-        if: steps.check_ecosystem.outputs.is_python_update == 'true'
+        if: steps.check_update.outputs.is_python == 'true' && steps.check_update.outputs.is_major != 'true'
         id: bump_version
         run: |
           uv run python - << 'EOF'
@@ -113,7 +138,7 @@ jobs:
           EOF
 
       - name: Commit and Push Changes to PR Branch
-        if: steps.check_ecosystem.outputs.is_python_update == 'true'
+        if: steps.check_update.outputs.is_python == 'true' && steps.check_update.outputs.is_major != 'true'
         env:
           NEW_VERSION: ${{ steps.bump_version.outputs.new_version }}
         run: |
@@ -129,14 +154,24 @@ jobs:
           fi
 
       - name: Verify Lockfile and Package Build
-        if: steps.check_ecosystem.outputs.is_python_update == 'true'
+        if: steps.check_update.outputs.is_python == 'true' && steps.check_update.outputs.is_major != 'true'
         run: |
           echo "Verifying uv.lock consistency..."
           uv lock --check
           echo "Verifying package build..."
           uv build
 
+      - name: Handle Major Updates (Requires Manual Review)
+        if: steps.check_update.outputs.is_major == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.PAT || secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          echo "Posting manual review notice on PR #${PR_NUMBER}..."
+          gh pr comment "$PR_NUMBER" --body "⚠️ **Major dependency update detected.** This PR requires manual review and testing before merging to avoid introducing breaking changes. Auto-merge and patch release were intentionally skipped." || true
+
       - name: Auto-Approve and Merge Pull Request
+        if: steps.check_update.outputs.is_major != 'true'
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.PAT || secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -162,7 +197,7 @@ jobs:
           fi
 
       - name: Tag Merge Commit and Trigger PyPI Release Workflow
-        if: steps.check_ecosystem.outputs.is_python_update == 'true'
+        if: steps.check_update.outputs.is_python == 'true' && steps.check_update.outputs.is_major != 'true'
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.PAT || secrets.GITHUB_TOKEN }}
           NEW_VERSION: ${{ steps.bump_version.outputs.new_version }}
