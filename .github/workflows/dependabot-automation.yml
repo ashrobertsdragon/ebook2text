@@ -1,0 +1,185 @@
+name: Dependabot Automation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  dependabot:
+    name: Update uv.lock, Bump Version, Merge & Release
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]' || github.event.pull_request.user.login == 'dependabot[bot]'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN || secrets.PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Determine if Python dependencies changed
+        id: check_ecosystem
+        run: |
+          ECOSYSTEM="${{ steps.metadata.outputs.package-ecosystem }}"
+          git fetch origin main
+          if [ "$ECOSYSTEM" = "pip" ] || git diff --name-only origin/main...HEAD | grep -q "pyproject.toml"; then
+            echo "is_python_update=true" >> "$GITHUB_OUTPUT"
+            echo "Python dependency update detected."
+          else
+            echo "is_python_update=false" >> "$GITHUB_OUTPUT"
+            echo "Non-Python update detected (ecosystem: $ECOSYSTEM)."
+          fi
+
+      - name: Install uv
+        if: steps.check_ecosystem.outputs.is_python_update == 'true'
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Refresh uv.lock
+        if: steps.check_ecosystem.outputs.is_python_update == 'true'
+        run: |
+          echo "Updating uv lockfile..."
+          uv lock
+
+      - name: Bump Bugfix / Patch Version in VERSION.py
+        if: steps.check_ecosystem.outputs.is_python_update == 'true'
+        id: bump_version
+        run: |
+          uv run python - << 'EOF'
+          import os
+          import re
+          import subprocess
+
+          version_file = "ebook2text/VERSION.py"
+
+          # Fetch base branch to find the base version on main
+          subprocess.run(["git", "fetch", "origin", "main"], check=True)
+          base_content = subprocess.check_output(
+              ["git", "show", "origin/main:ebook2text/VERSION.py"], text=True
+          )
+          base_match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', base_content)
+          if not base_match:
+              raise ValueError("Could not find __version__ in origin/main:ebook2text/VERSION.py")
+          base_version = base_match.group(1)
+
+          with open(version_file, "r") as f:
+              current_content = f.read()
+          curr_match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', current_content)
+          if not curr_match:
+              raise ValueError(f"Could not find __version__ in {version_file}")
+          current_version = curr_match.group(1)
+
+          # Parse semver bugfix / patch component
+          parts = base_version.split(".")
+          if len(parts) < 3:
+              raise ValueError(f"Base version format invalid: {base_version}")
+          patch_num = int(re.match(r"^(\d+)", parts[2]).group(1)) + 1
+          expected_version = f"{parts[0]}.{parts[1]}.{patch_num}"
+
+          # Idempotent bump: only bump if current version matches base
+          if current_version == base_version:
+              new_version = expected_version
+              new_content = re.sub(
+                  r'__version__\s*=\s*["\'][^"\']+["\']',
+                  f'__version__ = "{new_version}"',
+                  current_content,
+              )
+              with open(version_file, "w") as f:
+                  f.write(new_content)
+              print(f"Bumped version from {base_version} to {new_version}")
+          else:
+              new_version = current_version
+              print(f"Version already updated: {new_version} (base: {base_version})")
+
+          github_output = os.environ.get("GITHUB_OUTPUT")
+          if github_output:
+              with open(github_output, "a") as f:
+                  f.write(f"new_version={new_version}\n")
+                  f.write(f"base_version={base_version}\n")
+          EOF
+
+      - name: Commit and Push Changes to PR Branch
+        if: steps.check_ecosystem.outputs.is_python_update == 'true'
+        env:
+          NEW_VERSION: ${{ steps.bump_version.outputs.new_version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ebook2text/VERSION.py uv.lock
+          if ! git diff --staged --quiet; then
+            echo "Committing updated VERSION.py and uv.lock..."
+            git commit -m "chore(deps): bump version to v${NEW_VERSION} and refresh uv.lock [skip ci] [dependabot skip]"
+            git push origin HEAD:${{ github.head_ref }}
+          else
+            echo "No changes to commit; working directory is clean."
+          fi
+
+      - name: Verify Lockfile and Package Build
+        if: steps.check_ecosystem.outputs.is_python_update == 'true'
+        run: |
+          echo "Verifying uv.lock consistency..."
+          uv lock --check
+          echo "Verifying package build..."
+          uv build
+
+      - name: Auto-Approve and Merge Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.PAT || secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          echo "Approving PR #${PR_NUMBER}..."
+          gh pr review "$PR_NUMBER" --approve -b "Auto-approved Dependabot dependency update." || true
+
+          echo "Merging PR #${PR_NUMBER}..."
+          MERGED=false
+          for i in {1..5}; do
+            if gh pr merge "$PR_NUMBER" --merge --delete-branch; then
+              MERGED=true
+              echo "PR #${PR_NUMBER} successfully merged into main."
+              break
+            fi
+            echo "Merge attempt $i failed, waiting 3s before retrying..."
+            sleep 3
+          done
+
+          if [ "$MERGED" != "true" ]; then
+            echo "Failed to merge PR #${PR_NUMBER}"
+            exit 1
+          fi
+
+      - name: Tag Merge Commit and Trigger PyPI Release Workflow
+        if: steps.check_ecosystem.outputs.is_python_update == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.PAT || secrets.GITHUB_TOKEN }}
+          NEW_VERSION: ${{ steps.bump_version.outputs.new_version }}
+        run: |
+          TAG_NAME="v${NEW_VERSION}"
+          echo "Fetching latest main commit after merge..."
+          git fetch origin main
+          MERGE_COMMIT=$(git rev-parse origin/main)
+
+          echo "Checking if tag ${TAG_NAME} already exists..."
+          if git ls-remote --tags origin | grep -q "refs/tags/${TAG_NAME}$"; then
+            echo "Tag ${TAG_NAME} already exists on origin."
+          else
+            echo "Creating and pushing tag ${TAG_NAME} at commit ${MERGE_COMMIT}..."
+            git tag "$TAG_NAME" "$MERGE_COMMIT"
+            git push origin "$TAG_NAME"
+          fi
+
+          echo "Triggering release workflow (release.yml) to publish v${NEW_VERSION} to PyPI..."
+          gh workflow run release.yml --ref main
