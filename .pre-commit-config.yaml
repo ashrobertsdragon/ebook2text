@@ -38,7 +38,7 @@ repos:
     rev: v0.14.0
     hooks:
       - id: ruff-check
-        target-version: "py310"
+        target-version: "py311"
         exclude: ^ebook2text/ebooklib/
         args: [ --fix ]
       - id: ruff-format

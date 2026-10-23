@@ -2,7 +2,7 @@
 name = "ebook2text"
 description = "Convert common book file types to text for machine learning"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{ name = "Ashlynn Antrobus", email = "ashlynn@lorebinders.com" }]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
@@ -12,7 +12,6 @@ classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -25,7 +24,7 @@ dependencies = [
   "ebooklib>=0.20",
   "openai>=1.54.3",
   "pdfminer-six>=20240706",
-  "pillow>=12.3.0",
+  "pillow>=13.0.0",
   "python-docx>=1.1.2",
   "python-dotenv>=1.0.1",
 ]
@@ -64,7 +63,7 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 79
-target-version = "py310"
+target-version = "py311"
 exclude = [
   ".git",
   "__pycache__",

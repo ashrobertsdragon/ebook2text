@@ -14,7 +14,7 @@ This Python script provides functionality for converting various ebook file form
 
 ## Requirements
 
-To run this script, you need Python 3.10 or above and the following packages:
+To run this script, you need Python 3.11 or above and the following packages:
 
 - `bs4`
 - `ebooklib-autoupdate`
