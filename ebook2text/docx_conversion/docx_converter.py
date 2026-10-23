@@ -53,7 +53,7 @@ class DocxConverter:
                 from the Word document object.
         """
         try:
-            yield from docx.Document(file_path).paragraphs
+            yield from docx.Document(str(file_path)).paragraphs
         except (OSError, ValueError, XmlchemyError) as e:
             logger.error(f"Error reading Word document: {e}")
             raise DocxConversionError from e

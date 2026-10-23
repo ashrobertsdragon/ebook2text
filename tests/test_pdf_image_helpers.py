@@ -1,6 +1,9 @@
 import pytest
+from pdfminer.pdftypes import PDFStream
+from pdfminer.psparser import LIT
 
 from ebook2text.pdf_conversion.pdf_image_extractor import (
+    PDFImageExtractor,
     _expand_bits,
     _get_pillow_mode,
 )
@@ -93,3 +96,37 @@ class TestGetPillowMode:
     def test_unknown_color_space_returns_rgb(self):
         result = _get_pillow_mode(color_space="UnknownColorSpace")
         assert result == "RGB"
+
+
+@pytest.mark.parametrize("wrapped", [False, True], ids=["literal", "list"])
+@pytest.mark.parametrize(
+    ("color_space_name", "bit_depth", "expected_mode", "data_size"),
+    [
+        ("DeviceRGB", 8, "RGB", 192),
+        ("DeviceCMYK", 8, "CMYK", 256),
+        ("DeviceGray", 1, "1", 8),
+        ("UnknownColorSpace", 8, "RGB", 192),
+    ],
+)
+def test_parse_image_data_normalizes_pdf_color_space(
+    test_files_dir,
+    wrapped,
+    color_space_name,
+    bit_depth,
+    expected_mode,
+    data_size,
+):
+    extractor = PDFImageExtractor(test_files_dir / "test_pdf.pdf")
+    color_space = LIT(color_space_name)
+    data = bytes(data_size)
+    stream = PDFStream(
+        {
+            "Width": 8,
+            "Height": 8,
+            "BitsPerComponent": bit_depth,
+            "ColorSpace": [color_space] if wrapped else color_space,
+        },
+        data,
+    )
+
+    assert extractor._parse_image_data(stream) == (8, 8, expected_mode, data)

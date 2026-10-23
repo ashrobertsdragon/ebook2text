@@ -259,8 +259,8 @@ class PDFImageExtractor:
         if width > 1000 and height > 1000:
             raise ImageTooLargeError("probably full page image")
         mode, bit_depth = self._extract_color_data(stream)
-        stream = _expand_bits(stream.get_data(), bit_depth)
-        return width, height, mode, stream
+        image_data = _expand_bits(stream.get_data(), bit_depth)
+        return width, height, mode, image_data
 
     def _extract_color_data(self, stream: PDFStream) -> tuple[str, int]:
         """
@@ -274,8 +274,11 @@ class PDFImageExtractor:
                 of the image.
         """
         bit_depth: int = stream.get("BitsPerComponent")
-        color_space: PSLiteral = stream.get("ColorSpace")
+        color_space: PSLiteral | list[PSLiteral] = stream.get("ColorSpace")
         if isinstance(color_space, list):
             color_space = color_space[0]
-        mode: str = "1" if bit_depth == 1 else _get_pillow_mode(color_space)
+        color_space_name = _convert_psliteral_to_str(color_space)
+        mode: str = (
+            "1" if bit_depth == 1 else _get_pillow_mode(color_space_name)
+        )
         return mode, bit_depth
