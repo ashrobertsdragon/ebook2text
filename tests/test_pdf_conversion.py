@@ -135,7 +135,7 @@ class TestPDFConverter:
 
     def test_remove_extra_whitespace(self, pdf_converter):
         text_with_whitespace = "Line 1\n\n\nLine 2  Line 3"
-        cleaned_text = pdf_converter.remove_extra_whitespace(
+        cleaned_text = pdf_converter._remove_extra_whitespace(
             text_with_whitespace
         )
         assert cleaned_text == "Line 1\nLine 2 Line 3", (

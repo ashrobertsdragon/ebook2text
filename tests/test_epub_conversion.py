@@ -65,7 +65,7 @@ class TestEpubConverter:
         result_string = epub_converter.return_string(chapters)
         assert isinstance(result_string, str)
         assert (
-            result_string.count(epub_converter.chapter_separator)
+            result_string.count(epub_converter._chapter_separator)
             == len(chapters) - 1
         )
         assert all(chapter in result_string for chapter in chapters)
